@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.02                                 #
+# European VAT number validator Version 0.03                                 #
 # Copyright 2003 Nauwelaerts B  bpn@it-development.be                        #
-# Created 06/08/2003            Last Modified 29/09/2003                     #
+# Created 06/08/2003            Last Modified 01/11/2004                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -17,13 +17,16 @@
  ############################################################################
 # Revision history :                                                         #
 #                                                                            #
-# 0.01   06/08/2003;                                                         #
+# 0.03   01/11/2004; Adding support for error "Member Service Unavailable"   #
+# 0.03   01/11/2004; Adding 10 new members.                                  #
+#                    (Thanks to Robert Alloway for this update)              #
 # 0.02   29/09/2003; Fix alphanumeric VAT numbers rejection                  #
 #                    (Thanks to Robert Alloway for the regexps)              #
+# 0.01   06/08/2003; Initial release                                         #
 #                                                                            #
  ############################################################################
 use vars qw/$VERSION/;
-$VERSION = "0.02";
+$VERSION = "0.04";
 
 =head1 NAME
 
@@ -53,8 +56,6 @@ It asks the EU database for this.
 use strict;
 use HTTP::Request::Common qw(POST);
 use LWP::UserAgent;
-use CGI::Cookie;
-
 
 
 =head1 METHODS
@@ -70,25 +71,35 @@ use CGI::Cookie;
 sub new {
     my $class   = shift;
     my $self = {
-        members  => 'AT|BE|DE|DK|EL|ES|FI|FR|GB|IE|IT|LU|NL|PT|SE',
+        members  => 'AT|BE|CY|CZ|DE|DK|EE|EL|ES|FI|FR|GB|HU|IE|IT|LT|LU|LV|MT|NL|PL|PT|SE|SI|SK',
         baseurl  => 'http://europa.eu.int/comm/taxation_customs/vies/cgi-bin/viesquer',
         error    =>    '',
         re       => {
             AT    =>    'U[0-9]{8}',
             BE    =>    '[0-9]{9}',
+			CY	  =>	'[0-9]{8}[A-Za-z]',
+			CZ	  =>	'[0-9]{8,10}',
             DE    =>    '[0-9]{9}',
             DK    =>    '[0-9]{8}',
+			EE	  =>	'[0-9]{9}',
             EL    =>    '[0-9]{9}',
             ES    =>    '([A-Za-z][0-9]{8}|[A-Za-z][0-9]{7}[A-Za-z]|[0-9]{8}[A-Za-z])',
             FI    =>    '[0-9]{8}',
             FR    =>    '([0-9]{11}|[A-HJ-NP-Za-hj-np-z][0-9]{10}|[A-HJ-NP-Za-hj-np-z]{2}[0-9]{9}|[0-9][A-HJ-NP-Za-hj-np-z][0-9]{9})',
-            GB    =>    '([0-9]{9}|[0-9]{12})',
+            GB    =>    '([0-9]{9}|[0-9]{12}|GD[0-9]{3}|HA[0-9]{3})',
+			HU	  =>	'[0-8]{8}',
             IE    =>    '([0-9]{7}[A-Za-z]|[0-9][A-Za-z][0-9]{5}[A-Za-z])',
             IT    =>    '[0-9]{11}',
+			LT	  =>	'([0-9]{9}|[0-9]{12})',
             LU    =>    '[0-9]{8}',
+			LV	  =>	'[0-9]{11}',
+			MT	  =>	'[0-9]{8}',
             NL    =>    '[0-9]{9}B[0-9]{2}',
+			PL	  =>	'[0-9]{10}',
             PT    =>    '[0-9]{9}',
             SE    =>    '[0-9]{10}01',
+			SI	  =>	'[0-9]{8}',
+			SK	  =>	'[0-9]{10}',
         }
     };
     $self = bless $self, $class;
@@ -104,7 +115,9 @@ or specify VAT and MS (member state) individually.
 
 Valid MS values are :
 
- AT, BE, DE, DK, EL, ES, FI, FR, GB, IE, IT, LU, NL, PT, SE
+ AT, BE, CY, CZ, DE, DK, EE, EL, ES, FI, 
+ FR, GB, HU, IE, IT, LU, LV, MT, NL, PL,
+ PT, SE, SI, SK
 
 =cut
 
@@ -128,7 +141,7 @@ sub check {
     0;
 }
 
-=item B<get_last_error> - Returns last recorded error
+=item B<get_last_error> - Return the last recorded error
 
     $hvatn->get_last_error();
 
@@ -138,6 +151,8 @@ Possible errors are :
 - Invalid VAT number format : Internal checkup failed (bad syntax)
 - This VAT number doesn't exists in EU database : distant checkup
 - This VAT number contains errors : distant checkup
+- Time out connecting to the database : Temporary error when the connection to the database times out
+- Member Sevice Unavailable: The EU database is unable to reach the requested member's database.
 - Invalid response, please contact the author of this module. : This normally only happens if this software doesn't recognize any valid pattern into the response document: this generally means that the database interface has been modified.
   
 =cut
@@ -162,6 +177,7 @@ sub _is_valid_format {
     return $self->_set_error("Invalid VAT number format") if $vatn!~m/^$re$/;
     ($vatn, $mscc);
 }
+
 sub _is_res_ok {
     my $self=shift;
     my $res=shift;
@@ -172,11 +188,16 @@ sub _is_res_ok {
             return $self->_set_error("This VAT number doesn't exists in EU database.")
         } elsif (/^\s*Error\: (.*)$/) {
             return $self->_set_error("This VAT number contains errors: ".$1)
-        }
+        } elsif (/Request time-out\. Please re-submit your request later/){
+			return $self->_set_error("Time out connecting to the database")
+        } elsif (/^\s*Member State service unavailable/) {
+            return $self->_set_error("Member State service unavailable: Please re-submit your request later.")
+	}
         return 1 if /^\s*Yes\, valid VAT number$/;
     }
     $self->_set_error("Invalid response, please contact the author of this module.".$res)
 }
+
 sub _set_error {
     my $self=shift;
     $self->{error}=shift;
@@ -203,7 +224,7 @@ See COPYING for further informations on the GPL.
 
 =head1 Credits
 
-  Thanks to Robert Alloway for providing us internal checkup regexp's for VAT numbers.
+  Thanks to Robert Alloway for providing us internal checkup regexp's for VAT numbers, and the patch adding 10 new members.
 
 =head1 Disclaimer
 

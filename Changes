@@ -1,5 +1,12 @@
 Revision history for Business::Tax::VAT::Validation
 
+0.04  Mon Nov 01 15:40:27 2004
+        - Adding support for the "Member service unavailable" VIES's error.
+
+0.03  Mon Nov 01 15:23:16 2004
+        - Adding support for the 10 new EU countries. This update also includes an extra error code if the server returned a time out error. 
+          (Thanx to Robert Alloway, www.servicecentre.co.uk)
+
 0.02  Mon Sep 29 23:49:00 2003
         - Fix internal VAT checks: VAT numbers will be rejected if they contains non-numeric characters.
           Now, internal checks are performed by country dependent regeps (thanx to Robert Alloway)
