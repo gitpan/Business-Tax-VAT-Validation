@@ -1,7 +1,29 @@
-package Business::Tax::VAT::Validation;
-
+ package Business::Tax::VAT::Validation;
+ ############################################################################
+# IT Development software                                                    #
+# European VAT number validator Version 0.02                                 #
+# Copyright 2003 Nauwelaerts B  bpn@it-development.be                        #
+# Created 06/08/2003            Last Modified 29/09/2003                     #
+ ############################################################################
+# COPYRIGHT NOTICE                                                           #
+# Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
+#                                                                            #
+# THIS SOFTWARE IS RELEASED UNDER THE GNU Public Licence                     #
+# See COPYING for details                                                    #
+#                                                                            #
+#  This software is provided as is, WITHOUT ANY WARRANTY, without even the   #
+#  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  #
+#                                                                            #
+ ############################################################################
+# Revision history :                                                         #
+#                                                                            #
+# 0.01   06/08/2003;                                                         #
+# 0.02   29/09/2003; Fix alphanumeric VAT numbers rejection                  #
+#                    (Thanks to Robert Alloway for the regexps)              #
+#                                                                            #
+ ############################################################################
 use vars qw/$VERSION/;
-$VERSION = "0.01";
+$VERSION = "0.02";
 
 =head1 NAME
 
@@ -51,12 +73,29 @@ sub new {
         members  => 'AT|BE|DE|DK|EL|ES|FI|FR|GB|IE|IT|LU|NL|PT|SE',
         baseurl  => 'http://europa.eu.int/comm/taxation_customs/vies/cgi-bin/viesquer',
         error    =>    '',
+        re       => {
+            AT    =>    'U[0-9]{8}',
+            BE    =>    '[0-9]{9}',
+            DE    =>    '[0-9]{9}',
+            DK    =>    '[0-9]{8}',
+            EL    =>    '[0-9]{9}',
+            ES    =>    '([A-Za-z][0-9]{8}|[A-Za-z][0-9]{7}[A-Za-z]|[0-9]{8}[A-Za-z])',
+            FI    =>    '[0-9]{8}',
+            FR    =>    '([0-9]{11}|[A-HJ-NP-Za-hj-np-z][0-9]{10}|[A-HJ-NP-Za-hj-np-z]{2}[0-9]{9}|[0-9][A-HJ-NP-Za-hj-np-z][0-9]{9})',
+            GB    =>    '([0-9]{9}|[0-9]{12})',
+            IE    =>    '([0-9]{7}[A-Za-z]|[0-9][A-Za-z][0-9]{5}[A-Za-z])',
+            IT    =>    '[0-9]{11}',
+            LU    =>    '[0-9]{8}',
+            NL    =>    '[0-9]{9}B[0-9]{2}',
+            PT    =>    '[0-9]{9}',
+            SE    =>    '[0-9]{10}01',
+        }
     };
     $self = bless $self, $class;
     $self;
 }
 
-=item B<check> - Checks if a client have access to this document
+=item B<check> - Checks if a VAT number exists into the VIES database
     
     $ok=$hvatn->check($VAT, [$member_state]);
 
@@ -95,11 +134,11 @@ sub check {
 
 Possible errors are :
     
-- Invalid VAT number (1) : Internal checkup failed (formal)
-- Invalid MS code (1) : Internal checkup failed
+- Unknown MS code : Internal checkup failed (does not exists)
+- Invalid VAT number format : Internal checkup failed (bad syntax)
 - This VAT number doesn't exists in EU database : distant checkup
 - This VAT number contains errors : distant checkup
-- Invalid response, please contact the author of this module. : This only happens if this software doesn't recognize any valid pattern into the response document: this generally means that the database interface has been modified.
+- Invalid response, please contact the author of this module. : This normally only happens if this software doesn't recognize any valid pattern into the response document: this generally means that the database interface has been modified.
   
 =cut
 
@@ -113,12 +152,14 @@ sub _is_valid_format {
     my $self=shift;
     my $vatn=shift;
     my $mscc=shift;
+    my $null='';
     $vatn=~s/\-//g; $vatn=~s/\.//g; $vatn=~s/ //g;
-    if ($vatn=~s/($self->{members})//e) {
+    if ($vatn=~s/^($self->{members})/$null/e) {
         $mscc=$1;
     }
-    return $self->_set_error("Invalid VAT number (1)") if $vatn!~m/^\d+$/;
-    return $self->_set_error("Invalid MS code (1)") if $mscc!~m/^($self->{members})$/;
+    return $self->_set_error("Unknown MS code") if $mscc!~m/^($self->{members})$/;
+    my $re=$self->{re}{$mscc};
+    return $self->_set_error("Invalid VAT number format") if $vatn!~m/^$re$/;
     ($vatn, $mscc);
 }
 sub _is_res_ok {
@@ -160,9 +201,13 @@ Bernard Nauwelaerts <bpn@it-development.be>
 GPL.  Enjoy !
 See COPYING for further informations on the GPL.
 
+=head1 Credits
+
+  Thanks to Robert Alloway for providing us internal checkup regexp's for VAT numbers.
+
 =head1 Disclaimer
 
-See I<http://europa.eu.int/comm/taxation_customs/vies/en/viesdisc.htm> to known the limitations of the EU service.
+See I<http://europa.eu.int/comm/taxation_customs/vies/en/viesdisc.htm> to known the limitations of the EU validation service.
 
   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
   without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
