@@ -1,0 +1,27 @@
+Business::Tax::VAT::Validation version 0.01
+===========================================
+
+INSTALLATION
+
+To install this module type the following:
+
+   $ tar -zxvf Business-Tax-VAT-Validation-x.xx.tar.gz
+   $ cd  Business-Tax-VAT-Validation-x.xx
+
+   $ perl Makefile.PL
+   $ make
+   $ make test
+   # make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries available at CPAN:
+
+    HTTP::Request::Common
+    LWP::UserAgent
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2003 Bernard Nauwelaerts <bpn@it-development.be>
+This library is free software; you can redistribute it and/or modify
+it under the GPL/artistic licence. See COPYING for details.
