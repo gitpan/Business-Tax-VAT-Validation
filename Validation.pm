@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.03                                 #
-# Copyright 2003 Nauwelaerts B  bpn@it-development.be                        #
-# Created 06/08/2003            Last Modified 01/11/2004                     #
+# European VAT number validator Version 0.05                                 #
+# Copyright 2003 Nauwelaerts B  bpn#it-development%be                        #
+# Created 06/08/2003            Last Modified 09/01/2006                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -17,7 +17,9 @@
  ############################################################################
 # Revision history :                                                         #
 #                                                                            #
-# 0.03   01/11/2004; Adding support for error "Member Service Unavailable"   #
+# 0.05   19/01/2006; Adding support for proxy settings			     #
+#                    (Thanks to Tom Kirkpatrick for this update)	     #
+# 0.04   01/11/2004; Adding support for error "Member Service Unavailable"   #
 # 0.03   01/11/2004; Adding 10 new members.                                  #
 #                    (Thanks to Robert Alloway for this update)              #
 # 0.02   29/09/2003; Fix alphanumeric VAT numbers rejection                  #
@@ -26,7 +28,7 @@
 #                                                                            #
  ############################################################################
 use vars qw/$VERSION/;
-$VERSION = "0.04";
+$VERSION = "0.05";
 
 =head1 NAME
 
@@ -65,42 +67,50 @@ use LWP::UserAgent;
 =item B<new> Class constructor.
 
     $hvatn=Business::Tax::VAT::Validation->new();
-
+    
+    
+    If your system is located behind a proxy :
+    
+    $hvatn=Business::Tax::VAT::Validation->new(-proxy => ['http', 'http://example.com:8001/']);
+    
+    
 =cut
 
 sub new {
     my $class   = shift;
+    my %arg     = @_;
     my $self = {
         members  => 'AT|BE|CY|CZ|DE|DK|EE|EL|ES|FI|FR|GB|HU|IE|IT|LT|LU|LV|MT|NL|PL|PT|SE|SI|SK',
         baseurl  => 'http://europa.eu.int/comm/taxation_customs/vies/cgi-bin/viesquer',
         error    =>    '',
         re       => {
-            AT    =>    'U[0-9]{8}',
-            BE    =>    '[0-9]{9}',
-			CY	  =>	'[0-9]{8}[A-Za-z]',
-			CZ	  =>	'[0-9]{8,10}',
-            DE    =>    '[0-9]{9}',
-            DK    =>    '[0-9]{8}',
-			EE	  =>	'[0-9]{9}',
-            EL    =>    '[0-9]{9}',
-            ES    =>    '([A-Za-z][0-9]{8}|[A-Za-z][0-9]{7}[A-Za-z]|[0-9]{8}[A-Za-z])',
-            FI    =>    '[0-9]{8}',
-            FR    =>    '([0-9]{11}|[A-HJ-NP-Za-hj-np-z][0-9]{10}|[A-HJ-NP-Za-hj-np-z]{2}[0-9]{9}|[0-9][A-HJ-NP-Za-hj-np-z][0-9]{9})',
-            GB    =>    '([0-9]{9}|[0-9]{12}|GD[0-9]{3}|HA[0-9]{3})',
-			HU	  =>	'[0-8]{8}',
-            IE    =>    '([0-9]{7}[A-Za-z]|[0-9][A-Za-z][0-9]{5}[A-Za-z])',
-            IT    =>    '[0-9]{11}',
-			LT	  =>	'([0-9]{9}|[0-9]{12})',
-            LU    =>    '[0-9]{8}',
-			LV	  =>	'[0-9]{11}',
-			MT	  =>	'[0-9]{8}',
-            NL    =>    '[0-9]{9}B[0-9]{2}',
-			PL	  =>	'[0-9]{10}',
-            PT    =>    '[0-9]{9}',
-            SE    =>    '[0-9]{10}01',
-			SI	  =>	'[0-9]{8}',
-			SK	  =>	'[0-9]{10}',
-        }
+            AT      =>  'U[0-9]{8}',
+            BE      =>  '[0-9]{9}',
+	    CY      =>  '[0-9]{8}[A-Za-z]',
+	    CZ	    =>  '[0-9]{8,10}',
+            DE      =>  '[0-9]{9}',
+            DK      =>  '[0-9]{8}',
+	    EE	    =>  '[0-9]{9}',
+            EL      =>  '[0-9]{9}',
+            ES      =>  '([A-Za-z][0-9]{8}|[A-Za-z][0-9]{7}[A-Za-z]|[0-9]{8}[A-Za-z])',
+            FI      =>  '[0-9]{8}',
+            FR      =>  '([0-9]{11}|[A-HJ-NP-Za-hj-np-z][0-9]{10}|[A-HJ-NP-Za-hj-np-z]{2}[0-9]{9}|[0-9][A-HJ-NP-Za-hj-np-z][0-9]{9})',
+            GB      =>  '([0-9]{9}|[0-9]{12}|GD[0-9]{3}|HA[0-9]{3})',
+	    HU      =>  '[0-8]{8}',
+            IE      =>  '([0-9]{7}[A-Za-z]|[0-9][A-Za-z][0-9]{5}[A-Za-z])',
+            IT      =>  '[0-9]{11}',
+	    LT      =>  '([0-9]{9}|[0-9]{12})',
+            LU      =>  '[0-9]{8}',
+	    LV      =>  '[0-9]{11}',
+	    MT	    =>  '[0-9]{8}',
+            NL      =>  '[0-9]{9}B[0-9]{2}',
+	    PL      =>  '[0-9]{10}',
+            PT      =>  '[0-9]{9}',
+            SE      =>  '[0-9]{10}01',
+	    SI	    =>  '[0-9]{8}',
+	    SK	    =>  '[0-9]{10}',
+        },
+	proxy => $arg{-proxy}
     };
     $self = bless $self, $class;
     $self;
@@ -128,6 +138,11 @@ sub check {
     ($vatn, $mscc)=$self->_is_valid_format($vatn, $mscc);
     if ($vatn) {
         my $ua = LWP::UserAgent->new;
+	if (ref $self->{proxy} eq 'ARRAY') {
+	    $ua->proxy(@{$self->{proxy}});
+	} else {
+	    $ua->env_proxy;
+	}
         $ua->agent('Business::Tax::VAT::Validation/'.$VERSION);
         my $req = POST $self->{baseurl},
         [
@@ -215,7 +230,7 @@ If you find this module useful, or have any comments, suggestions or improvement
 
 =head1 AUTHOR
 
-Bernard Nauwelaerts <bpn@it-development.be>
+Bernard Nauwelaerts <bpn#it-development%be>
 
 =head1 LICENSE
 
@@ -225,6 +240,7 @@ See COPYING for further informations on the GPL.
 =head1 Credits
 
   Thanks to Robert Alloway for providing us internal checkup regexp's for VAT numbers, and the patch adding 10 new members.
+  Thanks to Tom Kirkpatrick for his proxy support suggestion.
 
 =head1 Disclaimer
 

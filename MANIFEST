@@ -5,3 +5,4 @@ Validation.pm
 README
 COPYING
 t/use.t
+META.yml                                 Module meta-data (added by MakeMaker)

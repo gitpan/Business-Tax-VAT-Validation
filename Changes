@@ -1,5 +1,9 @@
 Revision history for Business::Tax::VAT::Validation
 
+0.05  Thu Jan 19 14:55:01 2006
+        - Adding support for proxy server.
+           (Thanks to Tom Kirkpatrick)
+
 0.04  Mon Nov 01 15:40:27 2004
         - Adding support for the "Member service unavailable" VIES's error.
 
