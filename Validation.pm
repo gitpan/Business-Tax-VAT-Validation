@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.05                                 #
+# European VAT number validator Version 0.06                                 #
 # Copyright 2003 Nauwelaerts B  bpn#it-development%be                        #
-# Created 06/08/2003            Last Modified 09/01/2006                     #
+# Created 06/08/2003            Last Modified 25/05/2006                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -17,6 +17,8 @@
  ############################################################################
 # Revision history :                                                         #
 #                                                                            #
+# 0.06   25/05/2006; Changed $baseurl					     #
+#                    (Thanks to Torsten Mueller for this update)	     #
 # 0.05   19/01/2006; Adding support for proxy settings			     #
 #                    (Thanks to Tom Kirkpatrick for this update)	     #
 # 0.04   01/11/2004; Adding support for error "Member Service Unavailable"   #
@@ -27,8 +29,13 @@
 # 0.01   06/08/2003; Initial release                                         #
 #                                                                            #
  ############################################################################
-use vars qw/$VERSION/;
-$VERSION = "0.05";
+
+BEGIN {
+    $VERSION = "0.06";
+    use strict;
+    use HTTP::Request::Common qw(POST);
+    use LWP::UserAgent;
+}
 
 =head1 NAME
 
@@ -53,13 +60,6 @@ This class provides you a easy api to check validity of european VAT numbers (if
 
 It asks the EU database for this. 
 
-=cut
-
-use strict;
-use HTTP::Request::Common qw(POST);
-use LWP::UserAgent;
-
-
 =head1 METHODS
 
 =over 4
@@ -81,7 +81,8 @@ sub new {
     my %arg     = @_;
     my $self = {
         members  => 'AT|BE|CY|CZ|DE|DK|EE|EL|ES|FI|FR|GB|HU|IE|IT|LT|LU|LV|MT|NL|PL|PT|SE|SI|SK',
-        baseurl  => 'http://europa.eu.int/comm/taxation_customs/vies/cgi-bin/viesquer',
+        #baseurl  => 'http://europa.eu.int/comm/taxation_customs/vies/cgi-bin/viesquer', # Obsolete since v0.06
+	baseurl  => 'http://ec.europa.eu/taxation_customs/vies/cgi-bin/viesquer',
         error    =>    '',
         re       => {
             AT      =>  'U[0-9]{8}',
@@ -120,8 +121,8 @@ sub new {
     
     $ok=$hvatn->check($VAT, [$member_state]);
 
-You may either provide the VAT number under his complete form (e.g. BE-123456789, BE123456789 or BE 123 456 789)
-or specify VAT and MS (member state) individually.
+You may either provide the VAT number under its complete form (e.g. BE-123456789, BE123456789 or BE 123 456 789)
+or either specify VAT and MS (member state) individually.
 
 Valid MS values are :
 
@@ -143,7 +144,7 @@ sub check {
 	} else {
 	    $ua->env_proxy;
 	}
-        $ua->agent('Business::Tax::VAT::Validation/'.$VERSION);
+        $ua->agent('Business::Tax::VAT::Validation/'.$Business::Tax::VAT::Validation::VERSION);
         my $req = POST $self->{baseurl},
         [
             'Lang'        => 'EN',
@@ -162,7 +163,7 @@ sub check {
 
 Possible errors are :
     
-- Unknown MS code : Internal checkup failed (does not exists)
+- Unknown MS code : Internal checkup failed (Specified MS does not exists)
 - Invalid VAT number format : Internal checkup failed (bad syntax)
 - This VAT number doesn't exists in EU database : distant checkup
 - This VAT number contains errors : distant checkup
@@ -241,10 +242,11 @@ See COPYING for further informations on the GPL.
 
   Thanks to Robert Alloway for providing us internal checkup regexp's for VAT numbers, and the patch adding 10 new members.
   Thanks to Tom Kirkpatrick for his proxy support suggestion.
-
+  Thanks to Torsten Mueller to inform me about $baseurl modification.
+  
 =head1 Disclaimer
 
-See I<http://europa.eu.int/comm/taxation_customs/vies/en/viesdisc.htm> to known the limitations of the EU validation service.
+See I<http://ec.europa.eu/taxation_customs/vies/en/viesdisc.htm> to known the limitations of the EU validation service.
 
   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
   without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
