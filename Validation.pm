@@ -16,7 +16,8 @@
 #                                                                            #
  ############################################################################
 # Revision history :                                                         #
-#                                                                            #
+# 0.07   25/05/2006; Now we use "request" method not "simple request"        #
+#                    in order to follow potential redirects                  #
 # 0.06   25/05/2006; Changed $baseurl					     #
 #                    (Thanks to Torsten Mueller for this update)	     #
 # 0.05   19/01/2006; Adding support for proxy settings			     #
@@ -31,7 +32,7 @@
  ############################################################################
 
 BEGIN {
-    $VERSION = "0.06";
+    $VERSION = "0.07";
     use strict;
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
@@ -152,7 +153,7 @@ sub check {
             'VAT'         => $vatn ,
             'ISO'         => $mscc ,
         ];
-        return $mscc.'-'.$vatn if $self->_is_res_ok($ua->simple_request($req)->as_string);
+        return $mscc.'-'.$vatn if $self->_is_res_ok($ua->request($req)->as_string);
     }
     0;
 }

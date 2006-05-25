@@ -1,8 +1,15 @@
 Revision history for Business::Tax::VAT::Validation
 
+0.07  Thu May 25 14:55:19 2006
+        - Now we use "request" method not "simple request" in order to follow potential redirects
+          
+0.06  Thu May 25 14:44:14 2006
+        - Updating VIES base URL
+          (Thanks to Torsten Muller)
+
 0.05  Thu Jan 19 14:55:01 2006
         - Adding support for proxy server.
-           (Thanks to Tom Kirkpatrick)
+          (Thanks to Tom Kirkpatrick)
 
 0.04  Mon Nov 01 15:40:27 2004
         - Adding support for the "Member service unavailable" VIES's error.
