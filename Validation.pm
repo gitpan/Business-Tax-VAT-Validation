@@ -16,6 +16,8 @@
 #                                                                            #
  ############################################################################
 # Revision history :                                                         #
+# 0.08   20/06/2006; 9 and 10 digits transitional regexp for Belgium         #
+#                    From 31/12/2007, only 10 digits will be valid           #
 # 0.07   25/05/2006; Now we use "request" method not "simple request"        #
 #                    in order to follow potential redirects                  #
 # 0.06   25/05/2006; Changed $baseurl					     #
@@ -32,7 +34,7 @@
  ############################################################################
 
 BEGIN {
-    $VERSION = "0.07";
+    $VERSION = "0.08";
     use strict;
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
@@ -61,6 +63,10 @@ This class provides you a easy api to check validity of european VAT numbers (if
 
 It asks the EU database for this. 
 
+=head1 PROPERTIES
+
+=item B<member_states> Returns all member states 2-digit codes
+
 =head1 METHODS
 
 =over 4
@@ -87,7 +93,7 @@ sub new {
         error    =>    '',
         re       => {
             AT      =>  'U[0-9]{8}',
-            BE      =>  '[0-9]{9}',
+            BE      =>  '[0|1]?[0-9]{9}',
 	    CY      =>  '[0-9]{8}[A-Za-z]',
 	    CZ	    =>  '[0-9]{8,10}',
             DE      =>  '[0-9]{9}',
@@ -116,6 +122,11 @@ sub new {
     };
     $self = bless $self, $class;
     $self;
+}
+
+sub member_states {
+    my $self=shift;
+    (keys %{$self->{re}})
 }
 
 =item B<check> - Checks if a VAT number exists into the VIES database
