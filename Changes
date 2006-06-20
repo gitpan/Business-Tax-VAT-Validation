@@ -1,5 +1,12 @@
 Revision history for Business::Tax::VAT::Validation
 
+0.09  Thu Jun 20 09:28:32 2006
+        - Added local_check method: regexp only checkup, doesn't asks VIES
+
+0.08  Thu Jun 20 09:05:10 2006
+        - 9 and 2 digits transitional format for Belgium
+	- Added member_states property allowing you to retreive valid MS values
+	
 0.07  Thu May 25 14:55:19 2006
         - Now we use "request" method not "simple request" in order to follow potential redirects
           

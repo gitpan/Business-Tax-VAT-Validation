@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.06                                 #
+# European VAT number validator Version 0.09                                 #
 # Copyright 2003 Nauwelaerts B  bpn#it-development%be                        #
-# Created 06/08/2003            Last Modified 25/05/2006                     #
+# Created 06/08/2003            Last Modified 20/06/2006                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -16,6 +16,8 @@
 #                                                                            #
  ############################################################################
 # Revision history :                                                         #
+# 0.09   20/06/2006; local_check method allows you to test VAT numbers       #
+#                    without asking the EU database. Based on regexps.       #
 # 0.08   20/06/2006; 9 and 10 digits transitional regexp for Belgium         #
 #                    From 31/12/2007, only 10 digits will be valid           #
 # 0.07   25/05/2006; Now we use "request" method not "simple request"        #
@@ -34,7 +36,7 @@
  ############################################################################
 
 BEGIN {
-    $VERSION = "0.08";
+    $VERSION = "0.09";
     use strict;
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
@@ -167,6 +169,27 @@ sub check {
         return $mscc.'-'.$vatn if $self->_is_res_ok($ua->request($req)->as_string);
     }
     0;
+}
+
+
+=item B<local_check> - Checks if a VAT number format is valid
+    
+    $ok=$hvatn->local_check($VAT, [$member_state]);
+    
+    This method is based on regexps only and DOES NOT asks the VIES database
+
+=cut
+
+sub local_check {
+    my $self=shift;
+    my $vatn=shift || return $self->_set_error('You must provide a VAT number');
+    my $mscc=shift || '';
+    ($vatn, $mscc)=$self->_is_valid_format($vatn, $mscc);
+    if ($vatn) {
+        return 1
+    } else {
+        return 0
+    }
 }
 
 =item B<get_last_error> - Return the last recorded error
