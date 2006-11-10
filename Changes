@@ -1,5 +1,17 @@
 Revision history for Business::Tax::VAT::Validation
 
+0.12  Fri Nov 10 18:41:52 2006
+       - Makefile.PL: current YAML compliance (licence & version fields)
+
+0.11  Fri Nov 10 12:41:48 2006
+       - Minor bug allowing one forbidden character corrected in Belgian regexp.                                      # 
+         (Thanks to Andy Wardley for this report)
+       - added regexps property for external testing purposes
+       - POD CONSTRUCTOR. Some subs moved inside module.
+
+0.10  Thu Jul 20 0:00:00 2006
+        - Test::Pod to test suite added
+
 0.09  Thu Jun 20 09:28:32 2006
         - Added local_check method: regexp only checkup, doesn't asks VIES
 

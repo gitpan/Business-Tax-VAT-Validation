@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.09                                 #
+# European VAT number validator Version 0.11                                 #
 # Copyright 2003 Nauwelaerts B  bpn#it-development%be                        #
-# Created 06/08/2003            Last Modified 20/06/2006                     #
+# Created 06/08/2003            Last Modified 10/11/2006                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -11,11 +11,20 @@
 # THIS SOFTWARE IS RELEASED UNDER THE GNU Public Licence                     #
 # See COPYING for details                                                    #
 #                                                                            #
+# DISCLAIMER                                                                 #
 #  This software is provided as is, WITHOUT ANY WARRANTY, without even the   #
 #  implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  #
 #                                                                            #
  ############################################################################
-# Revision history :                                                         #
+# Revision history (dd/mm/yyyy) :                                            #
+#                                                                            #
+# 0.12   10/11/2006; YAML Compliance		                             # 
+# 0.11   10/11/2006; Minor bug allowing one forbidden character              # 
+#                    corrected in Belgian regexp                             # 
+#		     (Thanks to Andy Wardley for this report)                #
+#                    + added regular_expressions property                    # 
+#                      for external testing purposes                         #  
+# 0.10   20/07/2006; Adding Test::Pod to test suite                          #
 # 0.09   20/06/2006; local_check method allows you to test VAT numbers       #
 #                    without asking the EU database. Based on regexps.       #
 # 0.08   20/06/2006; 9 and 10 digits transitional regexp for Belgium         #
@@ -34,10 +43,10 @@
 # 0.01   06/08/2003; Initial release                                         #
 #                                                                            #
  ############################################################################
+use strict;
 
 BEGIN {
-    $VERSION = "0.09";
-    use strict;
+    $Business::Tax::VAT::Validation::VERSION = "0.12";
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -65,11 +74,8 @@ This class provides you a easy api to check validity of european VAT numbers (if
 
 It asks the EU database for this. 
 
-=head1 PROPERTIES
 
-=item B<member_states> Returns all member states 2-digit codes
-
-=head1 METHODS
+=head1 CONSTRUCTOR
 
 =over 4
 
@@ -77,12 +83,12 @@ It asks the EU database for this.
 
     $hvatn=Business::Tax::VAT::Validation->new();
     
-    
     If your system is located behind a proxy :
     
     $hvatn=Business::Tax::VAT::Validation->new(-proxy => ['http', 'http://example.com:8001/']);
     
-    
+    Note : 
+
 =cut
 
 sub new {
@@ -95,7 +101,7 @@ sub new {
         error    =>    '',
         re       => {
             AT      =>  'U[0-9]{8}',
-            BE      =>  '[0|1]?[0-9]{9}',
+            BE      =>  '[01]?[0-9]{9}',
 	    CY      =>  '[0-9]{8}[A-Za-z]',
 	    CZ	    =>  '[0-9]{8,10}',
             DE      =>  '[0-9]{9}',
@@ -126,10 +132,50 @@ sub new {
     $self;
 }
 
+=back
+
+=head1 PROPERTIES
+
+=over 4
+
+=item B<member_states> Returns all member states 2-digit codes as array
+
+    @ms=$hvatn->member_states;
+    
+=cut
+
 sub member_states {
     my $self=shift;
     (keys %{$self->{re}})
 }
+
+=item B<regular_expressions> - Returns a hash list containing one regular expression for each country
+
+If you want to test a VAT number format ouside this module, eg. embedded as javascript in web form.
+
+    %re=$hvatn->regular_expressions;
+
+returns
+
+    (
+	AT          =>  'U[0-9]{8}',
+	...
+	SK	    =>  '[0-9]{10}',
+    );
+
+=cut
+
+sub regular_expressions {
+    (%{shift->{re}})
+}
+
+=back
+
+=head1 METHODS
+
+=cut
+
+=over 4
 
 =item B<check> - Checks if a VAT number exists into the VIES database
     
@@ -254,6 +300,7 @@ sub _set_error {
     $self->{error}=shift;
     0;
 }
+=back
 
 =head1 Other documentation
 
