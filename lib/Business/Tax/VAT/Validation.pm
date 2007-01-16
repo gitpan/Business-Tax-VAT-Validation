@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.11                                 #
+# European VAT number validator Version 0.13                                 #
 # Copyright 2003 Nauwelaerts B  bpn#it-development%be                        #
-# Created 06/08/2003            Last Modified 10/11/2006                     #
+# Created 06/08/2003            Last Modified 16/01/2007                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -18,6 +18,8 @@
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 0.13   16/01/2007; VIES interface changed "not found" layout               # 
+#                    (Thanks to Tom Kirkpatrick for this update)	     #
 # 0.12   10/11/2006; YAML Compliance		                             # 
 # 0.11   10/11/2006; Minor bug allowing one forbidden character              # 
 #                    corrected in Belgian regexp                             # 
@@ -46,7 +48,7 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = "0.12";
+    $Business::Tax::VAT::Validation::VERSION = "0.13";
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -280,8 +282,8 @@ sub _is_res_ok {
     my $res=shift;
     $res=~s/[\r\n]//; $res=~s/>/>\n/;
     foreach (split(/\n/, $res)) {
-        next unless $_; 
-        if (/^\s*No\, invalid VAT number$/) {
+        next unless $_;
+        if (/^\s*No\, invalid VAT number/) {
             return $self->_set_error("This VAT number doesn't exists in EU database.")
         } elsif (/^\s*Error\: (.*)$/) {
             return $self->_set_error("This VAT number contains errors: ".$1)
@@ -292,7 +294,7 @@ sub _is_res_ok {
 	}
         return 1 if /^\s*Yes\, valid VAT number$/;
     }
-    $self->_set_error("Invalid response, please contact the author of this module.".$res)
+    $self->_set_error("Invalid response, please contact the author of this module. ".$res)
 }
 
 sub _set_error {
@@ -321,10 +323,10 @@ GPL.  Enjoy !
 See COPYING for further informations on the GPL.
 
 =head1 Credits
-
+  Thanks to Andy Wardley for finding a bug allowing forbidden character into BE regexp
   Thanks to Robert Alloway for providing us internal checkup regexp's for VAT numbers, and the patch adding 10 new members.
   Thanks to Tom Kirkpatrick for his proxy support suggestion.
-  Thanks to Torsten Mueller to inform me about $baseurl modification.
+  Thanks to Torsten Mueller to inform me about $baseurl modification, then noticed me a slight VIES interface change
   
 =head1 Disclaimer
 
