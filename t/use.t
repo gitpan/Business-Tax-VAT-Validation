@@ -11,11 +11,11 @@ if (ref $hvat){
 } else {
     ok(0);
 }
-my $res=$hvat->local_check('BE-0774257760');
+my $res=$hvat->check('BE-0774257760');
 if ($res){
     ok(1);
 } else {
-    ok(0);
+    warn $hvat->get_last_error_code.' '.$hvat->get_last_error;
 }
 exit;
 __END__
