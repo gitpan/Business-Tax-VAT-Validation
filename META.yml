@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Business-Tax-VAT-Validation
-version:             0.14
+version:             0.15
 abstract:            A class for european VAT numbers validation.
 license:             GPL
 generated_by:        ExtUtils::MakeMaker version 6.31

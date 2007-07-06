@@ -19,9 +19,14 @@
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 0.15   06/07/2007; Added missing "keys" during $self->{members}            #
+#                    constuction                                             #
+#                    (Thanks to Dave O.)                                     #
+#                    Corrected returned 0-1 error codes inversion            #
+#                    Some POD improvements                                   #
 # 0.14   05/07/2007; VIES interface changed $baseurl, and POST params were   #
 #                    changed to lowercase. Added support for Bulgaria and    #
-#                    Romania (thanks to  Kaloyan Iliev)                      #
+#                    Romania (thanks to Kaloyan Iliev)                       #
 #                    New get_last_error_code method                          #
 #                    Updated regexps according to the actual VIES FAQ        #
 #                    Some slight documentation improvements                  #
@@ -56,7 +61,7 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = "0.14";
+    $Business::Tax::VAT::Validation::VERSION = "0.15";
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -140,16 +145,10 @@ sub new {
             SI	    =>  '[0-9]{8}',
             SK	    =>  '[0-9]{10}',
         },
-	proxy => $arg{-proxy}
+        proxy => $arg{-proxy}
     };
     $self = bless $self, $class;
-
-    my @members=();
-    for my $k (%{$self->{re}}) {
-        push @members, $k
-    }
-    $self->{members}=join('|', @members);
-
+    $self->{members}=join('|', keys %{$self->{re}});
     $self;
 }
 
@@ -202,14 +201,14 @@ sub regular_expressions {
     
     $ok=$hvatn->check($VAT, [$member_state]);
 
-You may either provide the VAT number under its complete form (e.g. BE-123456789, BE123456789 or BE 123 456 789)
+You may either provide the VAT number under its complete form (e.g. BE-123456789, BE123456789)
 or either specify VAT and MS (member state) individually.
 
 Valid MS values are :
 
- AT, BE, CY, CZ, DE, DK, EE, EL, ES, FI, 
- FR, GB, HU, IE, IT, LU, LV, MT, NL, PL,
- PT, SE, SI, SK
+ AT, BE, BG, CY, CZ, DE, DK, EE, EL, ES,
+ FI, FR, GB, HU, IE, IT, LU, LV, MT, NL,
+ PL, PT, RO, SE, SI, SK
 
 =cut
 
@@ -259,20 +258,39 @@ sub local_check {
     }
 }
 
-=item B<get_last_error(_code)> - Return the last recorded error (code)
+=item B<get_last_error_code> - Returns the last recorded error code
+
+=item B<get_last_error> - Returns the last recorded error
 
     my $err = $hvatn->get_last_error_code();
     my $txt = $hvatn->get_last_error();
 
 Possible errors are :
-    
--   0  Unknown MS code : Internal checkup failed (Specified Member State does not exists)
--   1  Invalid VAT number format : Internal checkup failed (bad syntax)
--   2  This VAT number doesn't exists in EU database : distant checkup
--   3  This VAT number contains errors : distant checkup
--  17  Time out connecting to the database : Temporary error when the connection to the database times out
--  18  Member Sevice Unavailable: The EU database is unable to reach the requested member's database.
-- 257  Invalid response, please contact the author of this module. : This normally only happens if this software doesn't recognize any valid pattern into the response document: this generally means that the database interface has been modified, and you'll make the author happy by submitting the returned response !!!
+
+=over 4
+
+=item *
+  0  Unknown MS code : Internal checkup failed (Specified Member State does not exists)
+
+=item *
+  1  Invalid VAT number format : Internal checkup failed (bad syntax)
+
+=item *
+  2  This VAT number doesn't exists in EU database : distant checkup
+
+=item *
+  3  This VAT number contains errors : distant checkup
+
+=item *
+ 17  Time out connecting to the database : Temporary error when the connection to the database times out
+
+=item *
+ 18  Member Sevice Unavailable: The EU database is unable to reach the requested member's database.
+
+=item *
+257  Invalid response, please contact the author of this module. : This normally only happens if this software doesn't recognize any valid pattern into the response document: this generally means that the database interface has been modified, and you'll make the author happy by submitting the returned response !!!
+
+=back
 
 If error_code > 16,  you should temporarily accept the provided number, and periodically perform new checks until response is OK or error < 17
 If error_code > 256, you should temporarily accept the provided number, contact the author, and perform a new check when the software is updated.
@@ -283,7 +301,9 @@ sub get_last_error {
     shift->{error};
 }
 
-
+sub get_last_error_code {
+    shift->{error_code};
+}
 
 ### PRIVATE FUNCTIONS ==========================================================
 sub _format_vatn {
@@ -295,15 +315,18 @@ sub _format_vatn {
     if (!$mscc && $vatn=~s/^($self->{members}) ?/$null/e) {
         $mscc=$1;
     }
-    return $self->_set_error(1, "Unknown MS code") if $mscc!~m/^($self->{members})$/;
+    return $self->_set_error(0, "Unknown MS code") if $mscc!~m/^($self->{members})$/;
     my $re=$self->{re}{$mscc};
-    return $self->_set_error(0, "Invalid VAT number format") if $vatn!~m/^$re$/;
+    return $self->_set_error(1, "Invalid VAT number format") if $vatn!~m/^$re$/;
     ($vatn, $mscc);
 }
 
 sub _is_res_ok {
     my $self=shift;
     my $res=shift;
+    if ($res=~/^(\d{3}) (.*)/) {
+        return $self->_set_error($1, $2)
+    }
     $res=~s/[\r\n]//; $res=~s/>/>\n/;
     foreach (split(/\n/, $res)) {
         next unless $_;
@@ -355,17 +378,31 @@ Many thanks to the following people, actively implied in this software developme
 
 Sorted by last intervention :
 
-- Kaloyan Iliev, Digital Systems, Bulgaria.
-- Tom Kirkpatrick, Virus Bulletin, United Kingdom.
-- Andy Wardley, individual, United Kingdom.
-- Robert Alloway, Service Centre,United Kingdom.
-- Torsten Mueller, Archesoft, Germany
+=over 4
 
+=item *
+Dave O., POBox, U.S.A.
+
+=item *
+Kaloyan Iliev, Digital Systems, Bulgaria.
+
+=item *
+Tom Kirkpatrick, Virus Bulletin, United Kingdom.
+
+=item *
+Andy Wardley, individual, United Kingdom.
+
+=item *
+Robert Alloway, Service Centre, United Kingdom.
+
+=item *
+Torsten Mueller, Archesoft, Germany
+
+=back
 
 =head1 LICENSE
 
-GPL.  Enjoy !
-See COPYING for further informations on the GPL.
+GPL. Enjoy! See COPYING for further informations on the GPL.
 
 
 =head1 Disclaimer

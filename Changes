@@ -1,5 +1,23 @@
 Revision history for Business::Tax::VAT::Validation
 
+0.15  Fri Jul 06 18:26:12 2007;
+    - Added missing "keys" during $self->{members} constuction (Thanks to Dave O.)
+    - Corrected returned 0-1 error codes inversion
+    - Some POD improvements
+    - Improved tests: distant check + bad numbers local check
+
+0.14  Thu Jul 05 00:04:13 2007
+    - VIES interface changed $baseurl, and POST params were changed to lowercase. Added support for Bulgaria and Romania
+      (Thanks to  Kaloyan Iliev)
+    - New get_last_error_code method
+    - Updated regexps according to the actual VIES FAQ
+    - Some slight documentation improvements
+    - Improved tests: each regexp is tested accordind to FAQ
+
+0.13  Tue Jan 16 00:00:00 2007;
+    - VIES interface changed "not found" layout
+    - (Thanks to Tom Kirkpatrick for this update)
+    
 0.12  Fri Nov 10 18:41:52 2006
        - Makefile.PL: current YAML compliance (licence & version fields)
 
@@ -16,7 +34,7 @@ Revision history for Business::Tax::VAT::Validation
         - Added local_check method: regexp only checkup, doesn't asks VIES
 
 0.08  Thu Jun 20 09:05:10 2006
-        - 9 and 2 digits transitional format for Belgium
+    - 9 and 2 digits transitional format for Belgium
 	- Added member_states property allowing you to retreive valid MS values
 	
 0.07  Thu May 25 14:55:19 2006
