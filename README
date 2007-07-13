@@ -20,6 +20,12 @@ This module requires these other modules and libraries available at CPAN:
     HTTP::Request::Common
     LWP::UserAgent
 
+TEST SUITE
+
+If you really need to perform distant tests against the VIES interface,
+simply copy the test files located into distant_checks/ into "t/" directory
+before running "make test".
+
 COPYRIGHT AND LICENCE
 
 Copyright (C) 2003 Bernard Nauwelaerts <bpn#it-development%be>

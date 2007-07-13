@@ -19,6 +19,7 @@
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 0.16   13/07/2007; Allowing spaces in regexps                              #
 # 0.15   06/07/2007; Added missing "keys" during $self->{members}            #
 #                    constuction                                             #
 #                    (Thanks to Dave O.)                                     #
@@ -61,7 +62,7 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = "0.15";
+    $Business::Tax::VAT::Validation::VERSION = "0.16";
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -123,13 +124,13 @@ sub new {
             CY      =>  '[0-9]{8}[A-Za-z]',
             CZ	    =>  '[0-9]{8,10}',
             DE      =>  '[0-9]{9}',
-            DK      =>  '[0-9]{2} [0-9]{2} [0-9]{2} [0-9]{2}',
+            DK      =>  '[0-9]{2} ?[0-9]{2} ?[0-9]{2} ?[0-9]{2}',
             EE	    =>  '[0-9]{9}',
             EL      =>  '[0-9]{9}',
             ES      =>  '([A-Za-z0-9][0-9]{7}[A-Za-z0-9])',
             FI      =>  '[0-9]{8}',
-            FR      =>  '[A-Za-z10-9]{2} [0-9]{9}',
-            GB      =>  '([0-9]{3} [0-9]{4} [0-9]{2}( [0-9]{3})?|GD[0-9]{3}|HA[0-9]{3})',
+            FR      =>  '[A-Za-z0-9]{2} ?[0-9]{9}',
+            GB      =>  '([0-9]{3} ?[0-9]{4} ?[0-9]{2}|[0-9]{3} ?[0-9]{4} ?[0-9]{2} ?[0-9]{3}|GD[0-9]{3}|HA[0-9]{3})',
             HU      =>  '[0-8]{8}',
             IE      =>  '[0-9][A-Za-z0-9\+\*][0-9]{5}[A-Za-z]',
             IT      =>  '[0-9]{11}',
