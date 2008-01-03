@@ -1,5 +1,8 @@
 Revision history for Business::Tax::VAT::Validation
 
+0.17  Thu Jan 04 14:09:27 2008
+    - BE regexp updated to new 10-digit format
+
 0.16  Fri Jul 13 23:13:00
     - Allowing spaces in regexps
     - t/03_distant_check moved to distant_checks/. If you really need to perform all tests against the VIES DB, simply copy the test files into "t/" directory before running "make test".

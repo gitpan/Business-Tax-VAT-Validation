@@ -5,7 +5,6 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'		=> 'Business::Tax::VAT::Validation',
     'VERSION_FROM'	=> 'lib/Business/Tax/VAT/Validation.pm', # finds $VERSION
-    'LICENSE'           =>  'GPL',
     'PREREQ_PM'		=>  {
 				HTTP::Request::Common => 1.0,
 				LWP::UserAgent	      => 1.0,

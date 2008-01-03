@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.13                                 #
+# European VAT number validator Version 0.17                                 #
 # Copyright 2003 Nauwelaerts B  bpn#it-development%be                        #
-# Created 06/08/2003            Last Modified 05/07/2007                     #
+# Created 06/08/2003            Last Modified 03/01/2008                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -19,6 +19,8 @@
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 0.17   03/01/2008; BE regexp: from transitional 9-digit & 10-digit format  #
+#                    to 10-digit new format                                  #
 # 0.16   13/07/2007; Allowing spaces in regexps                              #
 # 0.15   06/07/2007; Added missing "keys" during $self->{members}            #
 #                    constuction                                             #
@@ -62,7 +64,7 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = "0.16";
+    $Business::Tax::VAT::Validation::VERSION = "0.17";
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -119,7 +121,7 @@ sub new {
         re         => {
         ### t/01_localcheck.t tests if these regexps accepts all regular VAT numbers, according to VIES FAQ
             AT      =>  'U[0-9]{8}',
-            BE      =>  '0?[0-9]{9}',
+            BE      =>  '0[0-9]{9}',
             BG      =>  '[0-9]{9,10}',
             CY      =>  '[0-9]{8}[A-Za-z]',
             CZ	    =>  '[0-9]{8,10}',
@@ -208,8 +210,8 @@ or either specify VAT and MS (member state) individually.
 Valid MS values are :
 
  AT, BE, BG, CY, CZ, DE, DK, EE, EL, ES,
- FI, FR, GB, HU, IE, IT, LU, LV, MT, NL,
- PL, PT, RO, SE, SI, SK
+ FI, FR, GB, HU, IE, IT, LU, LT, LV, MT,
+ NL, PL, PT, RO, SE, SI, SK
 
 =cut
 
