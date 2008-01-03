@@ -1,7 +1,7 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.17                                 #
+# European VAT number validator Version 0.18                                 #
 # Copyright 2003 Nauwelaerts B  bpn#it-development%be                        #
 # Created 06/08/2003            Last Modified 03/01/2008                     #
  ############################################################################
@@ -19,7 +19,7 @@
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
-# 0.17   03/01/2008; BE regexp: from transitional 9-digit & 10-digit format  #
+# 0.18   03/01/2008; BE regexp: from transitional 9-digit & 10-digit format  #
 #                    to 10-digit new format                                  #
 # 0.16   13/07/2007; Allowing spaces in regexps                              #
 # 0.15   06/07/2007; Added missing "keys" during $self->{members}            #
@@ -64,7 +64,7 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = "0.17";
+    $Business::Tax::VAT::Validation::VERSION = "0.18";
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -377,7 +377,7 @@ Bernard Nauwelaerts <bpn#it-development%be>
 
 =head1 Credits
 
-Many thanks to the following people, actively implied in this software development by submitting patches, bug reports, new members regexps, VIES interface changes,... :
+Many thanks to the following people, actively involved in this software development by submitting patches, bug reports, new members regexps, VIES interface changes,... :
 
 Sorted by last intervention :
 
