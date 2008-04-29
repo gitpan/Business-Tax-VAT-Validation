@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.18                                 #
+# European VAT number validator Version 0.19                                 #
 # Copyright 2003 Nauwelaerts B  bpn#it-development%be                        #
-# Created 06/08/2003            Last Modified 03/01/2008                     #
+# Created 06/08/2003            Last Modified 29/04/2008                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -19,6 +19,8 @@
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 0.19   29/04/2008; HU regexp: missing digit "9" added                      #
+#                    (Thanks to Simon Williams)                              #
 # 0.18   03/01/2008; BE regexp: from transitional 9-digit & 10-digit format  #
 #                    to 10-digit new format                                  #
 # 0.16   13/07/2007; Allowing spaces in regexps                              #
@@ -64,7 +66,7 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = "0.18";
+    $Business::Tax::VAT::Validation::VERSION = "0.19";
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -133,7 +135,7 @@ sub new {
             FI      =>  '[0-9]{8}',
             FR      =>  '[A-Za-z0-9]{2} ?[0-9]{9}',
             GB      =>  '([0-9]{3} ?[0-9]{4} ?[0-9]{2}|[0-9]{3} ?[0-9]{4} ?[0-9]{2} ?[0-9]{3}|GD[0-9]{3}|HA[0-9]{3})',
-            HU      =>  '[0-8]{8}',
+            HU      =>  '[0-9]{8}',
             IE      =>  '[0-9][A-Za-z0-9\+\*][0-9]{5}[A-Za-z]',
             IT      =>  '[0-9]{11}',
             LT      =>  '([0-9]{9}|[0-9]{12})',
@@ -382,6 +384,9 @@ Many thanks to the following people, actively involved in this software developm
 Sorted by last intervention :
 
 =over 4
+
+=item *
+Simon Williams, UK2 Limited, United Kingdom.
 
 =item *
 Dave O., POBox, U.S.A.
