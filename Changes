@@ -1,13 +1,23 @@
 Revision history for Business::Tax::VAT::Validation
 
+
+0.20  Mon Aug 18 2008
+    - VIES HTML changes: now allowing multiples spaces (Thanks to Simon Williams, Benoît Galy & Raluca Boboia)
+    
+0.19  Tue, Apr 29 2008
+    - HU regexp: missing digit "9" added (Thanks to Simon Williams)
+    
+0.18  Thu Jan 03 2008
+    - BE regexp: from transitional 9-digit & 10-digit format to 10-digit new format 
+
 0.17  Thu Jan 04 14:09:27 2008
     - BE regexp updated to new 10-digit format
 
-0.16  Fri Jul 13 23:13:00
+0.16  Fri Jul 13 23:13:00 2007
     - Allowing spaces in regexps
     - t/03_distant_check moved to distant_checks/. If you really need to perform all tests against the VIES DB, simply copy the test files into "t/" directory before running "make test".
     
-0.15  Fri Jul 06 18:26:12 2007;
+0.15  Fri Jul 06 18:26:12 2007
     - Added missing "keys" during $self->{members} constuction (Thanks to Dave O.)
     - Corrected returned 0-1 error codes inversion
     - Some POD improvements
@@ -21,7 +31,7 @@ Revision history for Business::Tax::VAT::Validation
     - Some slight documentation improvements
     - Improved tests: each regexp is tested accordind to FAQ
 
-0.13  Tue Jan 16 00:00:00 2007;
+0.13  Tue Jan 16 00:00:00 2007
     - VIES interface changed "not found" layout
     - (Thanks to Tom Kirkpatrick for this update)
     

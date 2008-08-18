@@ -19,6 +19,8 @@
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 0.20   18/08/2008; VIES HTML changes: now allowing multiples spaces        #
+#                    (Thanks to Simon Williams, Benoît Galy & Raluca Boboia) #
 # 0.19   29/04/2008; HU regexp: missing digit "9" added                      #
 #                    (Thanks to Simon Williams)                              #
 # 0.18   03/01/2008; BE regexp: from transitional 9-digit & 10-digit format  #
@@ -66,7 +68,7 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = "0.19";
+    $Business::Tax::VAT::Validation::VERSION = "0.20";
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -344,7 +346,7 @@ sub _is_res_ok {
         } elsif (/^\s*Member State service unavailable/) {
             return $self->_set_error(18, "Member State service unavailable: Please re-submit your request later.")
         }
-        return 1 if /^\s*Yes\, valid VAT number$/;
+        return 1 if /^\s*Yes\, valid VAT number\s*$/;
     }
     $self->_set_error(257, "Invalid response, please contact the author of this module. ".$res)
 }
@@ -386,7 +388,7 @@ Sorted by last intervention :
 =over 4
 
 =item *
-Simon Williams, UK2 Limited, United Kingdom.
+Simon Williams, UK2 Limited, United Kingdom & Benoît Galy, Greenacres, France & Raluca Boboia, Evozon, Romania
 
 =item *
 Dave O., POBox, U.S.A.
