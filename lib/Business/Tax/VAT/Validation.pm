@@ -19,6 +19,8 @@
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 0.21   04/08/2009; new error status 19: EU database too busy               #
+#                    (Martin H. Sluka)                                       #
 # 0.20   18/08/2008; VIES HTML changes: now allowing multiples spaces        #
 #                    (Thanks to Simon Williams, Benoît Galy & Raluca Boboia) #
 # 0.19   29/04/2008; HU regexp: missing digit "9" added                      #
@@ -68,7 +70,7 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = "0.20";
+    $Business::Tax::VAT::Validation::VERSION = '0.21';
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -295,6 +297,9 @@ Possible errors are :
  18  Member Sevice Unavailable: The EU database is unable to reach the requested member's database.
 
 =item *
+ 19  The EU database is too busy.
+
+=item *
 257  Invalid response, please contact the author of this module. : This normally only happens if this software doesn't recognize any valid pattern into the response document: this generally means that the database interface has been modified, and you'll make the author happy by submitting the returned response !!!
 
 =back
@@ -345,6 +350,8 @@ sub _is_res_ok {
 			return $self->_set_error(17, "Time out connecting to the database")
         } elsif (/^\s*Member State service unavailable/) {
             return $self->_set_error(18, "Member State service unavailable: Please re-submit your request later.")
+        } elsif (/^\s*(System busy: Too many requests)\. (Please re-submit your request later\.)/) {
+            return $self->_set_error(19, "$1: $2")
         }
         return 1 if /^\s*Yes\, valid VAT number\s*$/;
     }
@@ -386,6 +393,9 @@ Many thanks to the following people, actively involved in this software developm
 Sorted by last intervention :
 
 =over 4
+
+=item *
+Martin H. Sluka, noris network AG, Germany.
 
 =item *
 Simon Williams, UK2 Limited, United Kingdom & Benoît Galy, Greenacres, France & Raluca Boboia, Evozon, Romania
