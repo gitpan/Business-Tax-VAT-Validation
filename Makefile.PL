@@ -10,5 +10,8 @@ WriteMakefile(
 				LWP::UserAgent	      => 1.0,
                             }, 
     ABSTRACT_FROM    => 'lib/Business/Tax/VAT/Validation.pm',
-    AUTHOR           => 'Bernard Nauwelaerts <bpn#it-development%be>'
+	# Changed in 0.22
+    AUTHOR           => 'Bernard Nauwelaerts <bpgn@cpan.org>',
+	# Added in 0.22
+	LICENSE          => 'GPL_3',
 );

@@ -1,10 +1,10 @@
 --- #YAML:1.0
 name:               Business-Tax-VAT-Validation
-version:            0.21
+version:            0.22
 abstract:           A class for european VAT numbers validation.
 author:
-    - Bernard Nauwelaerts <bpn#it-development%be>
-license:            unknown
+    - Bernard Nauwelaerts <bpgn@cpan.org>
+license:            GPL_3
 distribution_type:  module
 configure_requires:
     ExtUtils::MakeMaker:  0

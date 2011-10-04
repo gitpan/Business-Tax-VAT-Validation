@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.19                                 #
-# Copyright 2003 Nauwelaerts B  bpn#it-development%be                        #
-# Created 06/08/2003            Last Modified 29/04/2008                     #
+# European VAT number validator Version 0.22                                 #
+# Copyright 2003 Nauwelaerts B  bpgn@cpan.org                                #
+# Created 06/08/2003            Last Modified 04/10/2011                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -12,14 +12,18 @@
 # Please see COPYING for details                                             #
 #                                                                            #
 # DISCLAIMER                                                                 #
-#  As usually with GNU software, this one is provided as is,                 # 
+#  As usual with GNU software, this one is provided as is,                   # 
 #  WITHOUT ANY WARRANTY, without even the implied warranty of                #
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                      #
 #                                                                            #
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
-# 0.21   04/08/2009; new error status 19: EU database too busy               #
+# 0.22   04/10/2011; Typo fix in POD error message #2                        #
+#                    (Thanks to Martin H. Sluka)                             #
+#                    Minor POD fixes (BPGN)                                  #
+#                    Fix subs args bug (performance fix) (BPGN)              #
+# 0.21   04/08/2009; New error status 19: EU database too busy               #
 #                    (Martin H. Sluka)                                       #
 # 0.20   18/08/2008; VIES HTML changes: now allowing multiples spaces        #
 #                    (Thanks to Simon Williams, Benoît Galy & Raluca Boboia) #
@@ -70,7 +74,7 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = '0.21';
+    $Business::Tax::VAT::Validation::VERSION = '0.22';
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -96,7 +100,7 @@ Business::Tax::VAT::Validation - A class for european VAT numbers validation.
 
 This class provides you a easy api to check validity of european VAT numbers (if the provided number exists).
 
-It asks the EU database for this. 
+It asks the EU database (VIES) for this, using its web interface methods. 
 
 
 =head1 CONSTRUCTOR
@@ -111,13 +115,12 @@ It asks the EU database for this.
     
     $hvatn=Business::Tax::VAT::Validation->new(-proxy => ['http', 'http://example.com:8001/']);
     
-    Note : 
+    Note : See LWP::UserAgent for proxy options.
 
 =cut
 
 sub new {
-    my $class   = shift;
-    my %arg     = @_;
+    my($class, %arg) = @_;
     my $self = {
         #baseurl  => 'http://europa.eu.int/comm/taxation_customs/vies/cgi-bin/viesquer', # Obsolete since v0.06
         #baseurl  => 'http://ec.europa.eu/taxation_customs/vies/cgi-bin/viesquer',       # Obsolete since v0.14
@@ -174,13 +177,12 @@ sub new {
 =cut
 
 sub member_states {
-    my $self=shift;
-    (keys %{$self->{re}})
+    (keys %{$_[0]->{re}})
 }
 
 =item B<regular_expressions> - Returns a hash list containing one regular expression for each country
 
-If you want to test a VAT number format ouside this module, eg. embedded as javascript in web form.
+If you want to test a VAT number format ouside this module, e.g. embedded as javascript in a web form.
 
     %re=$hvatn->regular_expressions;
 
@@ -195,7 +197,7 @@ returns
 =cut
 
 sub regular_expressions {
-    (%{shift->{re}})
+    (%{$_[0]->{re}})
 }
 
 =back
@@ -222,10 +224,10 @@ Valid MS values are :
 =cut
 
 sub check {
-    my $self=shift;
-    my $vatn=shift || return $self->_set_error('You must provide a VAT number');
-    my $mscc=shift || '';
-    ($vatn, $mscc)=$self->_format_vatn($vatn, $mscc);
+    my($self,$vatn,$mscc,@other)=@_; # @other is here for backward compatibility purposes
+    return $self->_set_error('You must provide a VAT number') unless $vatn;
+    $mscc||='';    
+	($vatn, $mscc)=$self->_format_vatn($vatn, $mscc);
     if ($vatn) {
         my $ua = LWP::UserAgent->new;
         if (ref $self->{proxy} eq 'ARRAY') {
@@ -256,10 +258,10 @@ sub check {
 =cut
 
 sub local_check {
-    my $self=shift;
-    my $vatn=shift || return $self->_set_error('You must provide a VAT number');
-    my $mscc=shift || '';
-    ($vatn, $mscc)=$self->_format_vatn($vatn, $mscc);
+    my($self,$vatn,$mscc,@other)=@_; # @other is here for backward compatibility purposes
+    return $self->_set_error('You must provide a VAT number') unless $vatn;
+    $mscc||='';    
+	($vatn, $mscc)=$self->_format_vatn($vatn, $mscc);
     if ($vatn) {
         return 1
     } else {
@@ -279,13 +281,13 @@ Possible errors are :
 =over 4
 
 =item *
-  0  Unknown MS code : Internal checkup failed (Specified Member State does not exists)
+  0  Unknown MS code : Internal checkup failed (Specified Member State does not exist)
 
 =item *
   1  Invalid VAT number format : Internal checkup failed (bad syntax)
 
 =item *
-  2  This VAT number doesn't exists in EU database : distant checkup
+  2  This VAT number doesn't exist in EU database : distant checkup
 
 =item *
   3  This VAT number contains errors : distant checkup
@@ -310,18 +312,16 @@ If error_code > 256, you should temporarily accept the provided number, contact 
 =cut
 
 sub get_last_error {
-    shift->{error};
+    $_[0]->{error};
 }
 
 sub get_last_error_code {
-    shift->{error_code};
+    $_[0]->{error_code};
 }
 
 ### PRIVATE FUNCTIONS ==========================================================
 sub _format_vatn {
-    my $self=shift;
-    my $vatn=shift;
-    my $mscc=shift;
+    my($self,$vatn,$mscc)=@_;
     my $null='';
     $vatn=~s/\-/ /g; $vatn=~s/\./ /g; $vatn=~s/\s+/ /g;
     if (!$mscc && $vatn=~s/^($self->{members}) ?/$null/e) {
@@ -334,8 +334,7 @@ sub _format_vatn {
 }
 
 sub _is_res_ok {
-    my $self=shift;
-    my $res=shift;
+    my($self,$res)=@_;
     if ($res=~/^(\d{3}) (.*)/) {
         return $self->_set_error($1, $2)
     }
@@ -366,31 +365,28 @@ sub _set_error {
 }
 =back
 
-=head1 Why not SOAP ?
+=head1 WHY NOT SOAP ?
 
-Just because this module's author wasn't given such time to do so. The SOAP module available at CPAN at time of writing is farly too complex to be used here, simple tasks having to be simply performed.
+Just because this module's author wasn't given such time to do so. Furthermore, the SOAP module available at CPAN at time of writing is farly too complex to be used here, simple tasks having to be simply performed. However, if you already use SOAP in your application, it may be better to query the VIES database by this way. See the VIES documentation for further details on how to use it.
+
+=head1 SEE ALSO
+
+LWP::UserAgent
 
 
-=head1 Other documentation
-
-Jetez un oeil sur I<http://www.it-development.be/software/PERL/Business-Tax-VAT-Validation/> pour la documentation en français.
-
-
-=head1 Feedback
+=head1 FEEDBACK
 
 If you find this module useful, or have any comments, suggestions or improvements, please let me know.
 
 
 =head1 AUTHOR
 
-Bernard Nauwelaerts <bpn#it-development%be>
+Bernard Nauwelaerts <bpgn@cpan.org>
 
 
-=head1 Credits
+=head1 CREDITS
 
-Many thanks to the following people, actively involved in this software development by submitting patches, bug reports, new members regexps, VIES interface changes,... :
-
-Sorted by last intervention :
+Many thanks to the following people, actively involved in the development of this software by submitting patches, bug reports, new members regexps, VIES interface changes,... (sorted by last intervention) :
 
 =over 4
 
@@ -425,7 +421,7 @@ Torsten Mueller, Archesoft, Germany
 GPL. Enjoy! See COPYING for further informations on the GPL.
 
 
-=head1 Disclaimer
+=head1 DISCLAIMER
 
 See I<http://ec.europa.eu/taxation_customs/vies/viesdisc.do> to known the limitations of the EU validation service.
 
