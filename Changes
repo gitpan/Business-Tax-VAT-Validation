@@ -1,5 +1,15 @@
 Revision history for Business::Tax::VAT::Validation
 
+0.23  29/02/2012
+    - Fix regexp in _is_res_ok with multiline regexp (Bart Heupers)
+	
+0.22  04/10/2011
+    - Typo fix in POD error message #2 (Thanks to Martin H. Sluka)
+    - Minor POD fixes (BPGN)
+    - Fix subs args bug (performance fix) (BPGN)
+
+0.21  04/08/2009
+    - New error status 19: EU database too busy (Martin H. Sluka)
 
 0.20  Mon Aug 18 2008
     - VIES HTML changes: now allowing multiples spaces (Thanks to Simon Williams, Benoît Galy & Raluca Boboia)

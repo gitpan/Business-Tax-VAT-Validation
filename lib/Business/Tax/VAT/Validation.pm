@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.22                                 #
+# European VAT number validator Version 0.23                                 #
 # Copyright 2003 Nauwelaerts B  bpgn@cpan.org                                #
-# Created 06/08/2003            Last Modified 04/10/2011                     #
+# Created 06/08/2003            Last Modified 29/02/2012                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -19,6 +19,8 @@
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 0.23   29/02/2012; Fix regexp in _is_res_ok with multiline regexp          #
+#                    (Thanks to Bart Heupers)                                # 
 # 0.22   04/10/2011; Typo fix in POD error message #2                        #
 #                    (Thanks to Martin H. Sluka)                             #
 #                    Minor POD fixes (BPGN)                                  #
@@ -74,7 +76,7 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = '0.22';
+    $Business::Tax::VAT::Validation::VERSION = '0.23';
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -98,7 +100,7 @@ Business::Tax::VAT::Validation - A class for european VAT numbers validation.
   
 =head1 DESCRIPTION
 
-This class provides you a easy api to check validity of european VAT numbers (if the provided number exists).
+This class provides an easy api to check european VAT numbers' syntax, and if they has been registered by the competent authorities.
 
 It asks the EU database (VIES) for this, using its web interface methods. 
 
@@ -250,10 +252,10 @@ sub check {
 
 
 =item B<local_check> - Checks if a VAT number format is valid
+    This method is based on regexps only and DOES NOT ask the VIES database
     
     $ok=$hvatn->local_check($VAT, [$member_state]);
     
-    This method is based on regexps only and DOES NOT asks the VIES database
 
 =cut
 
@@ -338,22 +340,18 @@ sub _is_res_ok {
     if ($res=~/^(\d{3}) (.*)/) {
         return $self->_set_error($1, $2)
     }
-    $res=~s/[\r\n]//; $res=~s/>/>\n/;
-    foreach (split(/\n/, $res)) {
-        next unless $_;
-        if (/^\s*No\, invalid VAT number/) {
-            return $self->_set_error(2, "This VAT number doesn't exists in EU database.")
-        } elsif (/^\s*Error\: (.*)$/) {
-            return $self->_set_error(3, "This VAT number contains errors: ".$1)
-        } elsif (/Request time-out\. Please re-submit your request later/){
-			return $self->_set_error(17, "Time out connecting to the database")
-        } elsif (/^\s*Member State service unavailable/) {
-            return $self->_set_error(18, "Member State service unavailable: Please re-submit your request later.")
-        } elsif (/^\s*(System busy: Too many requests)\. (Please re-submit your request later\.)/) {
-            return $self->_set_error(19, "$1: $2")
-        }
-        return 1 if /^\s*Yes\, valid VAT number\s*$/;
+    if ($res =~ /\>\s*No\, invalid VAT number/m) {
+        return $self->_set_error(2, "This VAT number doesn't exists in EU database.")
+    } elsif ($res =~ /\>\s*Error\: (.*)$/im) {
+        return $self->_set_error(3, "This VAT number contains errors: ".$1)
+    } elsif ($res =~ /Request time-out\. Please re-submit your request later/m){
+		return $self->_set_error(17, "Time out connecting to the database")
+    } elsif ($res =~ /\>\s*Member State service unavailable/m) {
+        return $self->_set_error(18, "Member State service unavailable: Please re-submit your request later.")
+    } elsif ($res =~ /\>\s*(System busy: Too many requests)\. (Please re-submit your request later\.)/m) {
+        return $self->_set_error(19, "$1: $2")
     }
+    return 1 if $res =~ />\s*Yes\, valid VAT number</m;
     $self->_set_error(257, "Invalid response, please contact the author of this module. ".$res)
 }
 
@@ -389,6 +387,9 @@ Bernard Nauwelaerts <bpgn@cpan.org>
 Many thanks to the following people, actively involved in the development of this software by submitting patches, bug reports, new members regexps, VIES interface changes,... (sorted by last intervention) :
 
 =over 4
+
+=item *
+Bart Heupers, Netherlands.
 
 =item *
 Martin H. Sluka, noris network AG, Germany.
