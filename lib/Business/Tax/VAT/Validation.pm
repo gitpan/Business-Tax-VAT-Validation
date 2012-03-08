@@ -1,9 +1,9 @@
  package Business::Tax::VAT::Validation;
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 0.23                                 #
+# European VAT number validator Version 0.24                                 #
 # Copyright 2003 Nauwelaerts B  bpgn@cpan.org                                #
-# Created 06/08/2003            Last Modified 29/02/2012                     #
+# Created 06/08/2003            Last Modified 06/03/2012                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -19,6 +19,8 @@
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 0.24   06/03/2012; Fix traderName field required for EL and ES MS          #
+#                    Update POST request fields                              #
 # 0.23   29/02/2012; Fix regexp in _is_res_ok with multiline regexp          #
 #                    (Thanks to Bart Heupers)                                # 
 # 0.22   04/10/2011; Typo fix in POD error message #2                        #
@@ -76,11 +78,10 @@
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = '0.23';
+    $Business::Tax::VAT::Validation::VERSION = '0.24';
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
-
 =head1 NAME
 
 Business::Tax::VAT::Validation - A class for european VAT numbers validation.
@@ -130,7 +131,7 @@ sub new {
         error      =>    '',
         error_code => 0,
         re         => {
-        ### t/01_localcheck.t tests if these regexps accepts all regular VAT numbers, according to VIES FAQ
+            ### t/01_localcheck.t tests if these regexps accepts all regular VAT numbers, according to VIES FAQ
             AT      =>  'U[0-9]{8}',
             BE      =>  '0[0-9]{9}',
             BG      =>  '[0-9]{9,10}',
@@ -212,10 +213,10 @@ sub regular_expressions {
 
 =item B<check> - Checks if a VAT number exists into the VIES database
     
-    $ok=$hvatn->check($VAT, [$member_state]);
+    $ok=$hvatn->check($number, [$memberStateCode, $requesterMemberStateCode, $requesterNumber, $traderName, $traderCompanyType, $traderStreet, $traderPostalCode, $traderCity]);
 
 You may either provide the VAT number under its complete form (e.g. BE-123456789, BE123456789)
-or either specify VAT and MS (member state) individually.
+or either specify VAT and MSC (number and memberStateCode) individually.
 
 Valid MS values are :
 
@@ -223,14 +224,34 @@ Valid MS values are :
  FI, FR, GB, HU, IE, IT, LU, LT, LV, MT,
  NL, PL, PT, RO, SE, SI, SK
 
+
+Additional fields are availaible for all members :
+
+ requesterMemberStateCode
+ requesterNumber
+
+Additional fields are availaible for these members :
+
+ EL (Greece)
+ ES (Spain)
+
+These fields are :
+
+ traderName
+ traderCompanyType
+ traderStreet
+ traderPostalCode
+ traderCity
+
 =cut
 
 sub check {
-    my($self,$vatn,$mscc,@other)=@_; # @other is here for backward compatibility purposes
-    return $self->_set_error('You must provide a VAT number') unless $vatn;
-    $mscc||='';    
-	($vatn, $mscc)=$self->_format_vatn($vatn, $mscc);
-    if ($vatn) {
+    my($self, $number, $memberStateCode, $requesterMemberStateCode, $requesterNumber, $traderName, $traderCompanyType, $traderStreet, $traderPostalCode, $traderCity, @other)=@_; # @other is here for backward compatibility purposes
+    return $self->_set_error('You must provide a VAT number') unless $number;
+    $memberStateCode||='';    
+    ($number, $memberStateCode)=$self->_format_vatn($number, $memberStateCode);
+    ($requesterNumber, $requesterMemberStateCode)=$self->_format_vatn($requesterNumber, $requesterMemberStateCode);
+    if ($number) {
         my $ua = LWP::UserAgent->new;
         if (ref $self->{proxy} eq 'ARRAY') {
             $ua->proxy(@{$self->{proxy}});
@@ -240,12 +261,20 @@ sub check {
         $ua->agent('Business::Tax::VAT::Validation/'.$Business::Tax::VAT::Validation::VERSION);
         my $req = POST $self->{baseurl},
         [
-            'selectedLanguage'        => 'EN',
-            'ms'                      => $mscc ,
-            'vat'                     => $vatn ,
-            'iso'                     => $mscc ,
+            'selectedLanguage'         => 'EN',
+            'memberStateCode'          => $memberStateCode ,
+            'number'                   => $number ,
+            'traderName'               => $traderName || '' ,
+            'traderCompanyType'        => $traderCompanyType || '' ,
+            'traderStreet'             => $traderStreet || '' ,
+            'traderPostalCode'         => $traderPostalCode || '' ,
+            'traderCity'               => $traderCity || '' ,
+            'requesterMemberStateCode' => $requesterMemberStateCode || '' ,
+            'requesterNumber'          => $requesterNumber || '' ,
+
+
         ];
-        return $mscc.'-'.$vatn if $self->_is_res_ok($ua->request($req)->as_string);
+        return $memberStateCode.'-'.$number if $self->_is_res_ok($ua->request($req)->as_string);
     }
     0;
 }
