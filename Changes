@@ -1,5 +1,12 @@
 Revision history for Business::Tax::VAT::Validation
 
+1.00  25/03/2012
+    - This module now uses the VIES SOAP interface (instead of the HTML one)
+
+0.24  06/03/2012
+    - Fix traderName field required for EL and ES MS
+                     Update POST request fields 
+
 0.23  29/02/2012
     - Fix regexp in _is_res_ok with multiline regexp (Bart Heupers)
 	
