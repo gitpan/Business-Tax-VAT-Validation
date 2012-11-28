@@ -1,5 +1,8 @@
 Revision history for Business::Tax::VAT::Validation
 
+1.01  28/11/2012
+    - Fix POD UTF-8 Encoding issue
+
 1.00  25/03/2012
     - This module now uses the VIES SOAP interface (instead of the HTML one)
 

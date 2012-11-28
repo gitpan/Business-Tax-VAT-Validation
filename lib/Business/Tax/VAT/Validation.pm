@@ -1,7 +1,13 @@
 package Business::Tax::VAT::Validation;
+=pod
+
+=encoding UTF-8
+
+=cut
+
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 1.00                                 #
+# European VAT number validator Version 1.01                                 #
 # Copyright 2003 Nauwelaerts B  bpgn@cpan.org                                #
 # Created 06/08/2003            Last Modified 25/03/2012                     #
  ############################################################################
@@ -19,7 +25,9 @@ package Business::Tax::VAT::Validation;
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 1.01   28/11/2012; Fix POD UTF8 Issue; Thanks to Graham Knop               #
 # 1.00   25/03/2012; This module now uses the VIES SOAP interface.           #
+#                    Add get_informations method                             #
 # 0.24   06/03/2012; Fix traderName field required for EL and ES MS          #
 #                    Update POST request fields                              #
 # 0.23   29/02/2012; Fix regexp in _is_res_ok with multiline regexp          #
@@ -79,7 +87,7 @@ package Business::Tax::VAT::Validation;
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = '1.00';
+    $Business::Tax::VAT::Validation::VERSION = '1.01';
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -467,13 +475,16 @@ Many thanks to the following people, actively involved in the development of thi
 =over 4
 
 =item *
+Graham Knop.
+
+=item *
 Bart Heupers, Netherlands.
 
 =item *
 Martin H. Sluka, noris network AG, Germany.
 
 =item *
-Simon Williams, UK2 Limited, United Kingdom & BenoÃ®t Galy, Greenacres, France & Raluca Boboia, Evozon, Romania
+Simon Williams, UK2 Limited, United Kingdom & Benoît Galy, Greenacres, France & Raluca Boboia, Evozon, Romania
 
 =item *
 Dave O., POBox, U.S.A.
