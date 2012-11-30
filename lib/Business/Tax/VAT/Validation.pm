@@ -7,9 +7,9 @@ package Business::Tax::VAT::Validation;
 
  ############################################################################
 # IT Development software                                                    #
-# European VAT number validator Version 1.01                                 #
+# European VAT number validator Version 1.0.2                                #
 # Copyright 2003 Nauwelaerts B  bpgn@cpan.org                                #
-# Created 06/08/2003            Last Modified 25/03/2012                     #
+# Created 06/08/2003            Last Modified 30/11/2012                     #
  ############################################################################
 # COPYRIGHT NOTICE                                                           #
 # Copyright 2003 Bernard Nauwelaerts  All Rights Reserved.                   #
@@ -25,6 +25,7 @@ package Business::Tax::VAT::Validation;
  ############################################################################
 # Revision history (dd/mm/yyyy) :                                            #
 #                                                                            #
+# 1.02   30/11/2012; Fix POD typo; Thanks to Gregor Herrmann                 #
 # 1.01   28/11/2012; Fix POD UTF8 Issue; Thanks to Graham Knop               #
 # 1.00   25/03/2012; This module now uses the VIES SOAP interface.           #
 #                    Add get_informations method                             #
@@ -87,7 +88,7 @@ package Business::Tax::VAT::Validation;
 use strict;
 
 BEGIN {
-    $Business::Tax::VAT::Validation::VERSION = '1.01';
+    $Business::Tax::VAT::Validation::VERSION = '1.02';
     use HTTP::Request::Common qw(POST);
     use LWP::UserAgent;
 }
@@ -475,6 +476,9 @@ Many thanks to the following people, actively involved in the development of thi
 =over 4
 
 =item *
+Gregor Herrmann, Debian.
+
+=item *
 Graham Knop.
 
 =item *
@@ -508,7 +512,7 @@ Torsten Mueller, Archesoft, Germany
 
 =head1 LICENSE
 
-GPL. Enjoy! See COPYING for further informations on the GPL.
+GPL. Enjoy! See COPYING for further information on the GPL.
 
 
 =head1 DISCLAIMER
